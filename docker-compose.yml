@@ -1,0 +1,52 @@
+services:
+  db-candynice:
+    image: mysql:8.0
+    container_name: db-candynice
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword1234
+      MYSQL_DATABASE: candynice
+      MYSQL_USER: candynice123
+      MYSQL_PASSWORD: candynice
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+
+  react-frontend-candynice:
+    build:
+      context: ./frontend
+    container_name: react-frontend-candynice
+    ports:
+      - "3000:3000"
+    working_dir: /usr/src/app
+    command: npm start
+    restart: unless-stopped
+    volumes:
+      - ./frontend:/usr/src/app
+      - /usr/src/app/node_module
+
+  symfony-backend-candynice:
+    build:
+      context: ./backend
+    container_name: symfony-backend-candynice
+    environment:
+      DATABASE_URL: "mysql://candynice123:candynice@db-candynice:3306/candynice?serverVersion=8.0.31&charset=utf8mb4"
+    volumes:
+      - ./backend:/var/www/html
+    ports:
+      - "9000:9000"
+    command: php -S 0.0.0.0:9000 -t public
+
+  nginx-candynice:
+    image: nginx:latest
+    container_name: nginx-candynice
+    ports:
+      - "8000:80"
+    depends_on:
+      - symfony-backend-candynice
+      - react-frontend-candynice
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  mysql-data:
