@@ -19,6 +19,7 @@ function HomePage() {
         fetch('http://localhost:8000/api/products')
             .then(response => response.json())
             .then(data => {
+                console.log('DATA PRODUCTS:', data);
                 setProducts(data);
                 setLoading(false);
             });
@@ -48,11 +49,12 @@ function HomePage() {
             }}>
                 Bienvenue dans notre Candies Shop 🍫
             </h1>
-
+     
             {/* Sous-navigation */}
-
+        
             <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '30px' }}>
                 {candyCategory && candyCategory.children && (
+            
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
                         {candyCategory.children.map(subcat => (
                             <Link key={subcat.id} to={`/category/${subcat.slug}`} style={{ padding: '10px 20px', borderRadius: '20px', backgroundColor: '#ffcccb', border: 'none', textDecoration: 'none', color: 'black' }}>
@@ -67,13 +69,10 @@ function HomePage() {
                 gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                 gap: '25px'
             }}>
-
-
-
+            
                 {selectedProducts.map((product, index) => (
-                    <Link to={`/product/${product.id}`} style={{ textDecoration: 'none' }}>
+                    <Link key={product.id} to={`/product/${product.id}`} style={{ textDecoration: 'none' }}>
                         <div
-                            key={product.id}
                             style={{
                                 backgroundColor: '#fff',
                                 borderRadius: '20px',

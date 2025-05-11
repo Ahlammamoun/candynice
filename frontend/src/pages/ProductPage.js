@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link } from 'react-router-dom';
 
 function ProductPage() {
   const { id } = useParams();
@@ -24,6 +24,7 @@ function ProductPage() {
   }
 
   return (
+    
     <div style={{ padding: '40px', textAlign: 'center' }}>
       <img 
         src={`/images/${product.image}`} 

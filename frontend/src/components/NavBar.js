@@ -1,41 +1,40 @@
-import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect, useContext } from 'react';
+import { Link, useLocation } from 'react-router-dom'; // Import useLocation
+import { UserContext } from '../components/UserContext';
 
 function NavBar() {
-  const location = useLocation();
-  const [categories, setCategories] = useState([]);
+  const { user, setUser, token } = useContext(UserContext);
   const [isGroceryPage, setIsGroceryPage] = useState(false);
+  const [isGroceryCategoryPage, setIsGroceryCategoryPage] = useState(false);
 
-  useEffect(() => {
-    async function fetchCategories() {
-      const response = await fetch('http://localhost:8000/api/categories');
-      const data = await response.json();
-      setCategories(data);
-    }
-    fetchCategories();
-  }, []);
+
+  // Use useLocation to detect route changes
+  const location = useLocation();
 
   useEffect(() => {
     const path = location.pathname;
 
-    if (path.startsWith('/grocery')) {
-      setIsGroceryPage(true);
-    } else if (path.startsWith('/category/')) {
-      const slug = path.split('/category/')[1];
-      let found = false;
+    setIsGroceryPage(path.startsWith('/grocery'));
 
-      for (const category of categories) {
-        for (const child of category.children) {
-          if (child.slug === slug && category.slug === 'grocery') {
-            found = true;
-          }
-        }
-      }
-      setIsGroceryPage(found);
+  }, [location]);
+
+
+  useEffect(() => {
+    const match = location.pathname.match(/^\/category\/(.+)$/);
+    const slug = match?.[1];
+
+    if (slug) {
+      fetch('http://localhost:8000/api/categories')
+        .then(res => res.json())
+        .then(categories => {
+          const grocery = categories.find(c => c.slug === 'grocery');
+          const isInGrocery = grocery?.children?.some(child => child.slug === slug);
+          setIsGroceryCategoryPage(!!isInGrocery);
+        });
     } else {
-      setIsGroceryPage(false);
+      setIsGroceryCategoryPage(false);
     }
-  }, [location, categories]);
+  }, [location]);
 
   const linkStyle = {
     fontSize: '1.1rem',
@@ -45,77 +44,83 @@ function NavBar() {
     transition: 'color 0.3s',
   };
 
+  const linkStyleRole = {
+    fontSize: '1.1rem',
+    color: isGroceryPage ? 'black' : 'black', // Keep this black, as it's a valid color
+    textDecoration: 'none',
+    position: 'relative',
+    transition: 'color 0.3s',
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('user');
+    setUser(null);
+  };
+
   return (
     <nav style={{
       display: 'flex',
       justifyContent: 'space-between',
       alignItems: 'center',
       padding: '15px 30px',
-      backgroundColor: isGroceryPage ? '#f5f0e1' : '#ffe6f0',
+      backgroundColor: isGroceryPage || isGroceryCategoryPage
+        ? 'rgb(210, 180, 140)'
+        : location.pathname.startsWith('/category/')
+          ? 'rgb(255, 204, 203' // neutre rosé si catégorie mais pas grocery
+          : 'rgb(255, 204, 203)',
+
+
       boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
       position: 'sticky',
       top: 0,
       zIndex: 1000,
-      borderbottomrightradius: '13px',
-      borderbottomleftradius: '13px',
+      borderBottomRightRadius: '13px',
+      borderBottomLeftRadius: '13px',
     }}>
-
-      {/* Left : Logo */}
-      {/* Left : Logo */}
-      <div style={{ flex: 1 }}>
+      {/* Left: Logo */}
+      <div>
         <Link to="/" style={{
           fontSize: '1.8rem',
           fontWeight: 'bold',
-          color: isGroceryPage ? '#5c4033' : '#ff6699',  // Marron ou Rose
+          color: isGroceryPage || isGroceryCategoryPage ? '#5c4033' : '#ff6699',
           textDecoration: 'none',
         }}>
-          {isGroceryPage ? "GroceryFine" : "CandyNice"}
+          {isGroceryPage || isGroceryCategoryPage ? "GroceryFine" : "CandyNice"}
         </Link>
       </div>
 
 
-
-      {/* Center : Emoji */}
+      {/* Right: Links */}
       <div style={{
-        flex: 1,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: '15px',
-        fontSize: '1.8rem',
-      }}>
-        {isGroceryPage ? (
-          <>
-            <span role="img" aria-label="pain">🥖</span>
-            <span role="img" aria-label="fromage">🧀</span>
-            <span role="img" aria-label="huile">🫒</span>
-            <span role="img" aria-label="riz">🍚</span>
-            <span role="img" aria-label="pot">🥫</span>
-          </>
-        ) : (
-          <>
-            <span role="img" aria-label="candy">🤤</span>
-            <span role="img" aria-label="bonbon">🍬</span>
-            <span role="img" aria-label="chocolat">🍫</span>
-            <span role="img" aria-label="chariot">🛒</span>
-            <span role="img" aria-label="lollipop">🍭</span>
-          </>
-        )}
-      </div>
-
-      {/* Right : Links */}
-      <div style={{
-        flex: 1,
         display: 'flex',
         justifyContent: 'flex-end',
         gap: '20px',
       }}>
+
+
+        {/* User Role Display */}
+        {user ? (
+          <>
+            <span style={linkStyleRole}>
+              {user.role && user.role.includes('ROLE_ADMIN') ? 'Hello👋 Admin' : 'Hello👋 Utilisateur'}
+            </span>
+            <Link to="/" onClick={handleLogout} style={linkStyle}>Logout</Link>
+            {user.role && user.role.includes('ROLE_ADMIN') && (
+              <Link to="/admin" style={linkStyle}>Backoffice</Link>
+            )}
+          </>
+        ) : (
+          <>
+            <Link to="/login" style={linkStyle}>Login</Link>
+          </>
+        )}
         <Link to="/" style={linkStyle}>Accueil</Link>
-        <Link to="/login" style={linkStyle}>Login</Link>
+        <Link to="/register" style={linkStyle}>Register</Link>
         <Link to="/" style={linkStyle}>Candies</Link>
         <Link to="/grocery" style={linkStyle}>Groceries</Link>
-      </div>
 
+      </div>
     </nav>
   );
 }

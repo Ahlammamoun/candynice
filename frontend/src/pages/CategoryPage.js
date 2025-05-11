@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, Link  } from 'react-router-dom';
 
 function CategoryPage() {
   const { slug } = useParams();
@@ -67,6 +67,7 @@ function CategoryPage() {
         marginTop: '40px',
         padding: '0 30px'
       }}>
+
         {products.map((product, index) => (
           <div
             key={product.id}
@@ -78,6 +79,7 @@ function CategoryPage() {
               textAlign: 'center',
               transition: 'transform 0.3s, box-shadow 0.3s',
               transform: index % 2 === 0 ? 'translateY(10px)' : 'translateY(-10px)',
+              overflow: 'hidden',
             }}
             onMouseEnter={e => {
               e.currentTarget.style.transform = 'scale(1.05)';
@@ -94,28 +96,29 @@ function CategoryPage() {
               alt={product.name}
               style={{
                 width: '100%',
-                height: '200px',
+                height: 'auto',
+                maxHeight: '300px',
                 objectFit: 'cover',
-                borderRadius: '15px',
-                marginBottom: '15px',
-                transition: 'transform 0.3s'
+                borderRadius: '20px',
+                marginBottom: '20px',
+                display: 'block',
               }}
-              onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.05)'}
-              onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
             />
 
             {/* 👉 Titre */}
-            <h3 style={{
-              fontSize: '1.5rem',
-              marginBottom: '10px',
-              background: isGroceryPage
-                ? 'linear-gradient(to right, #5c4033, #8b4513)'
-                : 'linear-gradient(to right, #333, #ff6699)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text',
-              textFillColor: 'transparent'
-            }}>
+            <h3
+              style={{
+                fontSize: '1.5rem',
+                marginBottom: '10px',
+                background: isGroceryPage
+                  ? 'linear-gradient(to right, #5c4033, #8b4513)'
+                  : 'linear-gradient(to right, #333, #ff6699)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                textFillColor: 'transparent',
+              }}
+            >
               {product.name}
             </h3>
 
@@ -125,14 +128,17 @@ function CategoryPage() {
             </p>
 
             {/* 👉 Prix */}
-            <p style={{
-              fontWeight: 'bold',
-              fontSize: '1.3rem',
-              color: isGroceryPage ? '#8b4513' : '#ff3366'
-            }}>
+            <p
+              style={{
+                fontWeight: 'bold',
+                fontSize: '1.3rem',
+                color: isGroceryPage ? '#8b4513' : '#ff3366',
+              }}
+            >
               {product.price} €
             </p>
           </div>
+
         ))}
       </div>
     </div>

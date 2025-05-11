@@ -1,0 +1,52 @@
+security:
+    # Encodage du mot de passe
+    password_hashers:
+        App\Entity\User:
+            algorithm: auto
+
+    providers:
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
+
+    firewalls:
+        # Authentification pour login
+        login:
+            pattern: ^/login
+            stateless: true
+            json_login:
+                check_path: /login
+                username_path: email
+                password_path: password
+                success_handler: lexik_jwt_authentication.handler.authentication_success
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        # Authentification pour register
+        register:
+            pattern: ^/register
+            stateless: true
+            # Tu peux ajouter ici un handler si tu veux gérer la logique d'enregistrement
+
+        # API protégée par JWT
+        api:
+            pattern: ^/api
+            stateless: true
+            jwt: ~
+
+    # # Contrôle d'accès (ACL)
+    # access_control:
+    #     # Autoriser les routes de login et register sans authentification
+    #     - { path: ^/login, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    #     - { path: ^/register, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+
+    #     # Autoriser la lecture des produits et des catégories sans authentification
+    #     - { path: ^/api/products, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+    #     - { path: ^/api/categories, roles: IS_AUTHENTICATED_ANONYMOUSLY }
+
+    #     # Tout le reste de /api doit être protégé par JWT
+    #     - { path: ^/api, roles: IS_AUTHENTICATED_FULLY }
+
+
+
+

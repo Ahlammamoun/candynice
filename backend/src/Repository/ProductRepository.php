@@ -5,6 +5,7 @@ namespace App\Repository;
 use App\Entity\Product;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+use App\Entity\Category;
 
 /**
  * @extends ServiceEntityRepository<Product>
@@ -55,9 +56,17 @@ public function findByCategorySlug(string $slug): array
 
 
 
-
-
-
+public function findByCategorySlugWithSubcategories(Category $category): array
+{
+    return $this->createQueryBuilder('p')
+        ->join('p.category', 'c')
+        // Jointure pour récupérer les sous-catégories via le parent
+        ->leftJoin('c.parent', 'parent')
+        ->where('c.slug = :slug OR parent.slug = :slug')
+        ->setParameter('slug', $category->getSlug())
+        ->getQuery()
+        ->getResult();
+}
 
 
 

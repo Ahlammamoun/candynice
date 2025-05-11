@@ -72,8 +72,8 @@ function GroceryHomePage() {
         gap: '25px'
       }}>
         {groceryProducts.map(product => (
-          <Link to={`/grocery/product/${product.id}`} style={{ textDecoration: 'none' }}>
-            <div key={product.id} style={{
+          <Link key={product.id} to={`/grocery/product/${product.id}`} style={{ textDecoration: 'none' }}>
+            <div style={{
               backgroundColor: '#fff',
               borderRadius: '20px',
               padding: '20px',

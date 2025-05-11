@@ -1,0 +1,8 @@
+{
+    "require": {
+        "lexik/jwt-authentication-bundle": "^2.21",
+        "symfony/security-core": "^6.4",
+        "symfony/security-bundle": "^6.4",
+        "symfony/monolog-bundle": "^3.10"
+    }
+}

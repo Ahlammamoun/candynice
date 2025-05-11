@@ -23,11 +23,24 @@
 ## docker-compose exec symfony-backend-candynice composer require doctrine/doctrine-migrations-bundle
 ## docker-compose exec symfony-backend-candynice composer require symfony/maker-bundle --dev
 
-#
-##
+## entrer dans le container 
+#  docker exec -it db-candynice mysql -u candynice123 -p
 
-#
-##
+
+# migrer les entity
+## docker-compose exec symfony-backend-candynice php bin/console make:migration
+## docker-compose exec symfony-backend-candynice php bin/console doctrine:migrations:migrate
+
+
+# installer jwt pour l'authentifaication
+## composer require lexik/jwt-authentication-bundle
+## composer require symfony/security-core
+## creer les clés jwt
+# mkdir -p config/jwt
+# openssl genpkey -algorithm RSA -out config/jwt/private.pem -pkeyopt rsa_keygen_bits:2048
+# openssl rsa -pubout -in config/jwt/private.pem -out config/jwt/public.pem
+
+
 
 #
 ##

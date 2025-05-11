@@ -31,6 +31,9 @@ services:
     container_name: symfony-backend-candynice
     environment:
       DATABASE_URL: "mysql://candynice123:candynice@db-candynice:3306/candynice?serverVersion=8.0.31&charset=utf8mb4"
+      JWT_SECRET_KEY: "/var/www/html/config/jwt/private.pem"  # Chemin de la clé privée dans le conteneur
+      JWT_PUBLIC_KEY: "/var/www/html/config/jwt/public.pem"  # Chemin de la clé publique dans le conteneur
+      JWT_PASSPHRASE: ""  # Si pas de passphrase
     volumes:
       - ./backend:/var/www/html
     ports:
