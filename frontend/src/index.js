@@ -1,3 +1,4 @@
+import './i18n'; // 👈 Import obligatoire pour activer les traductions
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';

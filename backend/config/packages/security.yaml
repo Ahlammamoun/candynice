@@ -33,7 +33,7 @@ security:
             pattern: ^/api
             stateless: true
             jwt: ~
-
+    
     # # Contrôle d'accès (ACL)
     # access_control:
     #     # Autoriser les routes de login et register sans authentification

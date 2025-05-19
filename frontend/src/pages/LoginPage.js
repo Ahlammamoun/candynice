@@ -6,7 +6,7 @@ const LoginPage = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [response, setResponse] = useState('');
-  
+
   const { setUser, setToken } = useContext(UserContext); // Utilisation correcte du UserContext
   const navigate = useNavigate();
 
@@ -20,43 +20,42 @@ const LoginPage = () => {
         body: JSON.stringify({ email, password }),
       });
 
-      // Vérifier la réponse
-      const textResponse = await res.text(); // Récupérer la réponse en texte brut
-      console.log("Réponse brute du serveur:", textResponse);  // Loguer la réponse brute
+      const textResponse = await res.text();
+      console.log("Réponse brute du serveur:", textResponse);
 
       if (!res.ok || !textResponse) {
         throw new Error('Erreur connexion ou réponse vide');
       }
 
-      // Tenter de parser la réponse en JSON
       let data;
       try {
-        data = JSON.parse(textResponse); // Parser la réponse en JSON
+        data = JSON.parse(textResponse);
       } catch (error) {
         console.error("Erreur lors du parsing JSON:", error);
         throw new Error('Réponse malformée du serveur');
       }
 
-      // Vérifier que la réponse contient les données attendues
-      if (!data.token || !data.role) {
+      // ✅ Nouvelle vérification de la bonne réponse
+      if (!data.token || !data.user) {
         throw new Error('Données invalides reçues du serveur');
       }
 
-      // Stocker dans localStorage
+      // ✅ Stocker token et user dans localStorage
       localStorage.setItem('auth_token', data.token);
-      localStorage.setItem('role', JSON.stringify(data.role)); // Stocker le role au lieu de user
+      localStorage.setItem('user', JSON.stringify(data.user));
 
-      // Mettre à jour le contexte utilisateur avec les données de réponse
-      setUser({ role: data.role }); // Stocker le rôle dans l'état utilisateur
+      // ✅ Mettre à jour le contexte React
       setToken(data.token);
+      setUser(data.user);
 
       setResponse('Connexion réussie ✅');
-      navigate('/'); // Rediriger vers la page d'accueil après la connexion
+      navigate('/'); // Redirection après connexion
     } catch (error) {
       console.error(error);
       setResponse(`Erreur connexion ❌: ${error.message}`);
     }
   };
+
 
   return (
     <div style={{
@@ -98,22 +97,22 @@ const LoginPage = () => {
           outline: 'none',
         }}
       />
-      <button onClick={handleLogin}  style={{
-          width: '100%',
-          padding: '12px',
-          backgroundColor: '#00bfa6',
-          color: 'white',
-          border: 'none',
-          borderRadius: '12px',
-          cursor: 'pointer',
-          fontWeight: 'bold',
-          transition: 'background-color 0.3s',
-        }}
+      <button onClick={handleLogin} style={{
+        width: '100%',
+        padding: '12px',
+        backgroundColor: '#00bfa6',
+        color: 'white',
+        border: 'none',
+        borderRadius: '12px',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        transition: 'background-color 0.3s',
+      }}
         onMouseEnter={(e) => e.target.style.backgroundColor = '#00a28d'}
         onMouseLeave={(e) => e.target.style.backgroundColor = '#00bfa6'}
-        >Se connecter
-        </button>
-        <div style={{ marginTop: '20px', color: response.includes('réussie') ? 'green' : 'red' }}>
+      >Se connecter
+      </button>
+      <div style={{ marginTop: '20px', color: response.includes('réussie') ? 'green' : 'red' }}>
         {response}
       </div>
     </div>

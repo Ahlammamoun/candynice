@@ -17,6 +17,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column]
     private ?int $id = null;
 
+    #[ORM\Column(type: 'string', length: 255)]
+    private ?string $name = null;
+
     #[ORM\Column(length: 255, unique: true)]
     private ?string $email = null;
 
@@ -36,6 +39,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         return $this->id;
     }
 
+
+    public function getName(): ?string
+    {
+        return $this->name;
+    }
+
+    public function setName(string $name): self
+    {
+        $this->name = $name;
+        return $this;
+    }
     public function getEmail(): ?string
     {
         return $this->email;
@@ -64,7 +78,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         if (!in_array('ROLE_USER', $roles, true)) {
             $roles[] = 'ROLE_USER';  // Toujours ajouter ROLE_USER par défaut
         }
-    
+
         return array_unique($roles);
     }
 

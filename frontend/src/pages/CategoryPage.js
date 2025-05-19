@@ -1,19 +1,29 @@
+import { useUser } from '../components/UserContext';   
 import React, { useEffect, useState } from 'react';
-import { useParams, Link  } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
+import { useContext } from 'react';
+import { CartContext } from '../components/CartContext';
+import { UserContext } from '../components/UserContext';
+
 
 function CategoryPage() {
+  const { fetchWithAuth } = useUser();
   const { slug } = useParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
+  const { addToCart } = useContext(CartContext);
+  const { user } = useContext(UserContext);
+
 
   useEffect(() => {
     async function fetchData() {
-      const productsResponse = await fetch(`http://localhost:8000/api/products?category=${slug}`);
+      const productsResponse = await fetchWithAuth(`http://localhost:8000/api/products?category=${slug}`);
       const productsData = await productsResponse.json();
       setProducts(productsData);
 
-      const categoriesResponse = await fetch('http://localhost:8000/api/categories');
+      const categoriesResponse = await fetchWithAuth('http://localhost:8000/api/categories');
       const categoriesData = await categoriesResponse.json();
       setCategories(categoriesData);
 
@@ -43,6 +53,29 @@ function CategoryPage() {
       minHeight: '100vh',
       paddingBottom: '50px'
     }}>
+
+
+      <button
+        onClick={() => navigate(-1)}
+        style={{
+          padding: '10px 20px',
+          borderRadius: '20px',
+          backgroundColor: '#f4e1c1',
+          color: '#5c4033',
+          border: 'none',
+          fontWeight: 'bold',
+          cursor: 'pointer',
+          fontSize: '1rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px'
+        }}
+      >
+        <span style={{ fontSize: '1.2rem' }}>⬅<i className="fas fa-arrow-right"></i>
+        </span>
+      </button>
+
+
       <h1 style={{
         textAlign: 'center',
         fontSize: '2.5rem',
@@ -92,8 +125,9 @@ function CategoryPage() {
           >
             {/* 👉 Image produit */}
             <img
-              src={`/images/${product.image}`}
+              src={product.image.startsWith('/uploads/') ? product.image : `/uploads/images/${product.image}`}
               alt={product.name}
+
               style={{
                 width: '100%',
                 height: 'auto',
@@ -137,6 +171,29 @@ function CategoryPage() {
             >
               {product.price} €
             </p>
+            <button
+              onClick={() => {
+                if (!user) {
+                  alert("Veuillez vous connecter pour ajouter un produit au panier.");
+                  return;
+                }
+                addToCart(product);
+                alert("✅ Produit ajouté au panier !");
+              }}
+              style={{
+                marginTop: '10px',
+                padding: '10px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                backgroundColor: isGroceryPage ? '#8b4513' : '#00cc99',
+                color: 'white',
+                fontWeight: 'bold',
+                cursor: 'pointer'
+              }}
+            >
+              🛒 Ajouter au panier
+            </button>
+
           </div>
 
         ))}

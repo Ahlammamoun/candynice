@@ -17,22 +17,27 @@ export default function AdminPage({ token }) {
         <h2>Admin Dashboard</h2>
         <nav>
           <ul style={{ listStyle: 'none', padding: 0 }}>
-            <li>
-              <button onClick={() => changeSection('products')} style={{ backgroundColor: 'rgb(255, 204, 203', color: 'black', padding: '20px' }}>
-                Gestion des Produits
-              </button>
-            </li>
-            <li>
-              <button onClick={() => changeSection('users')} style={{ backgroundColor: 'rgb(255, 204, 203', color: 'black', padding: '20px' }}>
-                Gestion des Utilisateurs
-              </button>
-            </li>
-            <li>
-              <button onClick={() => changeSection('categories')} style={{ backgroundColor: 'rgb(255, 204, 203)', color: 'black', padding: '20px' }}>
-                Gestion des Catégories
-              </button>
-            </li>
-            {/* Ajouter d'autres sections ici */}
+            {[
+              { section: 'products', label: 'Gestion des Produits' },
+              { section: 'users', label: 'Gestion des Utilisateurs' },
+              { section: 'categories', label: 'Gestion des Catégories' }
+            ].map(({ section, label }) => (
+              <li key={section} style={{ marginBottom: '10px' }}>
+                <button
+                  onClick={() => changeSection(section)}
+                  style={{
+                    backgroundColor: 'rgb(255, 204, 203)',
+                    color: 'black',
+                    padding: '20px',
+                    width: '100%',
+                    border: 'none',
+                    cursor: 'pointer'
+                  }}
+                >
+                  {label}
+                </button>
+              </li>
+            ))}
           </ul>
         </nav>
       </div>
@@ -42,7 +47,7 @@ export default function AdminPage({ token }) {
 
         {/* Affichage conditionnel des sections */}
         {currentSection === 'products' && <ProductAdminPage token={token} />}
-        {currentSection === 'users' &&<UserAdminPage token={token} />} {/* Gérer les utilisateurs ici */}
+        {currentSection === 'users' && <UserAdminPage token={token} />} {/* Gérer les utilisateurs ici */}
         {currentSection === 'categories' && <CategoryAdminPage token={token} />}
 
       </div>

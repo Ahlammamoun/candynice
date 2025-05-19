@@ -1,0 +1,19 @@
+{
+  "my_orders": "Mes commandes",
+  "login": "Connexion",
+  "register": "Créer un compte",
+  "logout": "Déconnexion",
+  "home": "Accueil",
+  "candies": "Bonbons",
+  "groceries": "Épicerie",
+  "hello_admin": "Hello 👋 Admin",
+  "hello_user": "Hello 👋 Utilisateur",
+  "orders_title": "Historique des commandes",
+  "loading": "Chargement...",
+  "no_orders": "Aucune commande trouvée.",
+  "order_number": "Commande #{{id}}",
+  "date": "Date",
+  "total": "Total",
+  "download_invoice": "Télécharger la facture",
+  "download_error": "Erreur lors du téléchargement de la facture"
+}

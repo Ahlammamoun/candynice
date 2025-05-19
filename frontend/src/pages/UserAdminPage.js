@@ -5,7 +5,7 @@ export default function UserAdminPage() {
   const { fetchWithAuth } = useUser();
   const [users, setUsers] = useState([]);
   const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({ email: '', password: '', roles: ['ROLE_USER'] });
+  const [form, setForm] = useState({ email: '', password: '', roles: ['ROLE_USER'], name: '' });
 
   const loadUsers = async () => {
     const res = await fetchWithAuth('/api/users');
@@ -22,7 +22,7 @@ export default function UserAdminPage() {
     const url = editingId ? `/api/users/${editingId}` : '/api/users';
 
     const payload = editingId
-      ? { email: form.email, roles: form.roles }
+      ? { email: form.email, roles: form.roles, name: form.name }
       : { ...form };
 
     const res = await fetchWithAuth(url, {
@@ -47,6 +47,7 @@ export default function UserAdminPage() {
       email: user.email,
       password: '',
       roles: user.roles,
+      name: user.name
     });
   };
 
@@ -55,8 +56,15 @@ export default function UserAdminPage() {
     const res = await fetchWithAuth(`/api/users/${id}`, {
       method: 'DELETE',
     });
+    const data = await res.json().catch(() => null);
     if (res.ok) {
       setUsers(users.filter((u) => u.id !== id));
+    } else {
+      if (data?.code === 'USER_HAS_ORDERS') {
+        alert('❌ Impossible de supprimer : cet utilisateur a passé des commandes.');
+      } else {
+        alert('❌ Erreur lors de la suppression de l’utilisateur.');
+      }
     }
   };
 
@@ -66,6 +74,14 @@ export default function UserAdminPage() {
 
       <div className="form-container">
         <h3>{editingId ? 'Modifier un utilisateur' : 'Créer un utilisateur'}</h3>
+
+        <input
+          className="input-field"
+          placeholder="Nom"
+          value={form.name}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
+        />
+
         <input
           className="input-field"
           placeholder="Email"
@@ -100,7 +116,7 @@ export default function UserAdminPage() {
         {users.map((user) => (
           <li key={user.id} className="user-item">
             <div>
-              <strong>{user.email}</strong> — {user.roles.join(', ')}
+              <strong>{user.name}</strong> — {user.email} — {user.roles.join(', ')}
             </div>
             <div className="actions">
               <button className="btn-edit" onClick={() => handleEdit(user)}>✏️</button>
@@ -142,7 +158,7 @@ export default function UserAdminPage() {
         .btn-submit {
           width: 100%;
           padding: 12px;
-          background-color: #4CAF50;
+          background-color: #6c63ff;
           color: white;
           border: none;
           border-radius: 6px;

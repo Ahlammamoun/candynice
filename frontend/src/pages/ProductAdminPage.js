@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 
+
 const ProductAdminPage = () => {
+
     const [products, setProducts] = useState([]);
     const [categories, setCategories] = useState([]);
     const [subCategories, setSubCategories] = useState([]);
@@ -189,12 +191,12 @@ const ProductAdminPage = () => {
             alert("Le champ 'Région' est obligatoire");
             return;
         }
-    
+
         if (!newProduct.category || !newProduct.subCategory) {
             alert("La catégorie et la sous-catégorie sont obligatoires");
             return;
         }
-    
+
         let imageUrl = newProduct.image;
         if (imageFile) {
             imageUrl = await uploadImage(imageFile);
@@ -203,7 +205,7 @@ const ProductAdminPage = () => {
                 return;
             }
         }
-    
+
         // Effectuer la mise à jour du produit
         const response = await fetch(`/api/products/${editingProductId}`, {
             method: 'PUT',
@@ -216,10 +218,10 @@ const ProductAdminPage = () => {
                 image: imageUrl,
             }),
         });
-    
+
         const result = await response.json();
         console.log('Résultat de la mise à jour :', result);
-    
+
         if (response.ok) {
             // Recharger toute la liste des produits depuis l'API
             fetch('/api/products')
@@ -232,7 +234,7 @@ const ProductAdminPage = () => {
                     console.error("Erreur lors de la récupération des produits :", error);
                     alert("Produit mis à jour, mais échec de la mise à jour de la liste.");
                 });
-    
+
             // Réinitialiser l'état d'édition
             setEditingProductId(null);
             setNewProduct({
@@ -251,7 +253,7 @@ const ProductAdminPage = () => {
             alert("Erreur lors de la mise à jour du produit.");
         }
     };
-    
+
     // Fonction pour supprimer un produit
     const handleDeleteProduct = async (id) => {
         try {
@@ -318,11 +320,35 @@ const ProductAdminPage = () => {
                 />
                 <input
                     className="input-field"
-                    type="text"
-                    value={newProduct.image}
-                    onChange={(e) => setNewProduct({ ...newProduct, image: e.target.value })}
-                    placeholder="Image URL"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                        const file = e.target.files[0];
+                        setImageFile(file);
+                        if (file) {
+                            const previewURL = URL.createObjectURL(file);
+                            setNewProduct(prev => ({ ...prev, image: previewURL }));
+                        }
+                    }}
                 />
+
+                {imageFile && (
+                    <div style={{ marginTop: '10px' }}>
+                        <p style={{ marginBottom: '5px', fontWeight: 'bold' }}>Aperçu :</p>
+                        <img
+                            src={newProduct.image}
+                            alt="Preview"
+                            style={{
+                                maxWidth: '200px',
+                                maxHeight: '200px',
+                                borderRadius: '8px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.2)'
+                            }}
+                        />
+                    </div>
+                )}
+
+
                 <input
                     className="input-field"
                     type="number"
@@ -388,17 +414,40 @@ const ProductAdminPage = () => {
             <ul className="product-list">
                 {products.map((product) => (
                     <li key={product.id} className="product-item">
-                        <div>
-                            <h4>{product.name}</h4>
-                            <p>{product.price}€</p>
-                            <div className="actions">
-                                <button className="btn-edit" onClick={() => handleEditProduct(product.id)}>Modifier</button>
-                                <button className="btn-delete" onClick={() => handleDeleteProduct(product.id)}>Supprimer</button>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            {/* ✅ Image miniature */}
+                            <img
+                                src={
+                                    product.image.startsWith('/uploads/')
+                                        ? product.image
+                                        : `/uploads/images/${product.image}`
+                                }
+                                alt={product.name}
+                                style={{
+                                    width: '80px',
+                                    height: '80px',
+                                    objectFit: 'cover',
+                                    borderRadius: '8px',
+                                    boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+                                }}
+                            />
+                            <div style={{ flex: 1 }}>
+                                <h4 style={{ margin: 0 }}>{product.name}</h4>
+                                <p style={{ margin: '4px 0' }}>{product.price}€</p>
+                                <div className="actions">
+                                    <button className="btn-edit" onClick={() => handleEditProduct(product.id)}>
+                                        Modifier
+                                    </button>
+                                    <button className="btn-delete" onClick={() => handleDeleteProduct(product.id)}>
+                                        Supprimer
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </li>
                 ))}
             </ul>
+
 
             {/* CSS pour la page */}
             <style>{`

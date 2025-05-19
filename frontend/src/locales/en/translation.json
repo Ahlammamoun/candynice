@@ -1,0 +1,19 @@
+{
+  "my_orders": "My Orders",
+  "login": "Login",
+  "register": "Register",
+  "logout": "Logout",
+  "home": "Home",
+  "candies": "Candies",
+  "groceries": "Groceries",
+  "hello_admin": "Hello 👋 Admin",
+  "hello_user": "Hello 👋 User",
+  "orders_title": "Order History",
+  "loading": "Loading...",
+  "no_orders": "No orders found.",
+  "order_number": "Order #{{id}}",
+  "date": "Date",
+  "total": "Total",
+  "download_invoice": "Download invoice",
+  "download_error": "Error downloading invoice"
+}

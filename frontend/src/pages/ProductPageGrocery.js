@@ -1,16 +1,22 @@
-// src/pages/ProductPageGrocery.js
 
+import { useUser } from '../components/UserContext';
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-
+import { useParams, Link } from 'react-router-dom';
+import { useContext } from 'react';
+import { CartContext } from '../components/CartContext';
+import { UserContext } from '../components/UserContext';
 
 function ProductPageGrocery() {
+  const { fetchWithAuth } = useUser();
   const { id } = useParams(); // récupérer l'id du produit depuis l'URL
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
+  const { addToCart } = useContext(CartContext);
+  const { user } = useContext(UserContext);
+
 
   useEffect(() => {
-    fetch(`http://localhost:8000/api/products/${id}`)
+    fetchWithAuth(`http://localhost:8000/api/products/${id}`)
       .then(response => response.json())
       .then(data => {
         setProduct(data);
@@ -28,7 +34,7 @@ function ProductPageGrocery() {
 
   return (
     <div style={{
-       
+
 
       padding: '30px',
       backgroundColor: '#fdf6e3', // Couleur douce Grocery
@@ -37,7 +43,24 @@ function ProductPageGrocery() {
       flexDirection: 'column',
       alignItems: 'center'
     }}>
-      
+      <Link to="/grocery" style={{ textDecoration: 'none' }}>
+        <button
+          style={{
+            marginTop: '10px',
+            padding: '10px 20px',
+            borderRadius: '20px',
+            backgroundColor: '#f4e1c1',
+            color: '#5c4033',
+            border: 'none',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontSize: '1rem'
+          }}
+        >
+          <span style={{ fontSize: '1.2rem' }}>⬅<i className="fas fa-arrow-right"></i>
+          </span>
+        </button>
+      </Link>
       <h1 style={{
         fontSize: '2.5rem',
         marginBottom: '20px',
@@ -46,9 +69,9 @@ function ProductPageGrocery() {
         {product.name}
       </h1>
 
-      <img 
-        src={`/images/${product.image}`} 
-        alt={product.name} 
+      <img
+        src={product.image.startsWith('/uploads/') ? product.image : `/uploads/images/${product.image}`}
+        alt={product.name}
         style={{
           width: '350px',
           height: 'auto',
@@ -86,7 +109,30 @@ function ProductPageGrocery() {
           Origine : {product.region}
         </p>
       )}
-      
+      <button
+        onClick={() => {
+          if (!user) {
+            alert("Veuillez vous connecter pour ajouter ce produit au panier.");
+            return;
+          }
+          addToCart(product);
+          alert("✅ Produit ajouté au panier !");
+        }}
+        style={{
+          marginTop: '20px',
+          padding: '12px 24px',
+          backgroundColor: '#8b4513',
+          color: 'white',
+          border: 'none',
+          borderRadius: '10px',
+          fontWeight: 'bold',
+          fontSize: '1rem',
+          cursor: 'pointer'
+        }}
+      >
+        🛒 Ajouter au panier
+      </button>
+
     </div>
   );
 }

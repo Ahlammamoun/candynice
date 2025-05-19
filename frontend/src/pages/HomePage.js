@@ -1,41 +1,49 @@
+import { useUser } from '../components/UserContext';        
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-
+import { CartContext } from '../components/CartContext';
+import { useContext } from 'react';
 
 function HomePage() {
+    const { fetchWithAuth } = useUser();
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [selectedRegion, setSelectedRegion] = useState('');
+    const [regions, setRegions] = useState([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [showFilters, setShowFilters] = useState(false);
+    const { addToCart } = useContext(CartContext);
+
 
     useEffect(() => {
-        // Charger les catégories
-        fetch('http://localhost:8000/api/categories')
+        fetchWithAuth('http://localhost:8000/api/categories')
             .then(response => response.json())
             .then(data => {
                 setCategories(data);
             });
 
-        // Charger les produits
-        fetch('http://localhost:8000/api/products')
+        fetchWithAuth('http://localhost:8000/api/products')
             .then(response => response.json())
             .then(data => {
-                console.log('DATA PRODUCTS:', data);
                 setProducts(data);
                 setLoading(false);
+                const allRegions = Array.from(new Set(data.map(p => p.region).filter(Boolean)));
+                setRegions(allRegions);
             });
     }, []);
 
-    if (loading) {
-        return <div>Chargement en cours...</div>;
-    }
 
-    // Trouver la catégorie "Candy"
+
     const candyCategory = categories.find(cat => cat.name.toLowerCase() === 'candy');
 
-    // Sélectionner 5 produits attractifs (par exemple les 5 premiers pour l'instant)
-    const selectedProducts = products.slice(0, 12
+    const filteredProducts = products.filter(p => {
+        const matchRegion = selectedRegion ? p.region === selectedRegion : true;
+        const matchSearch = searchTerm ? p.name.toLowerCase().includes(searchTerm.toLowerCase()) : true;
+        return matchRegion && matchSearch;
+    });
 
-    );
+    const selectedProducts = filteredProducts.slice(0, 12);
 
     return (
         <div style={{ padding: '20px', backgroundColor: 'rgb(230, 255, 247)', minHeight: '100vh' }}>
@@ -49,12 +57,146 @@ function HomePage() {
             }}>
                 Bienvenue dans notre Candies Shop 🍫
             </h1>
-     
-            {/* Sous-navigation */}
-        
+
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                <button
+                    onClick={() => setShowFilters(prev => !prev)}
+                    style={{
+                        padding: '10px 20px',
+                        borderRadius: '20px',
+                        backgroundColor: '#ffcccb',
+                        border: 'none',
+                        cursor: 'pointer',
+                        fontWeight: 'bold',
+                        fontSize: '1rem',
+                    }}
+                >
+                    {showFilters ? 'Masquer les filtres' : 'Afficher les filtres'}
+                </button>
+            </div>
+
+            {showFilters && (
+                <div style={{
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '20px',
+                    marginBottom: '30px',
+                    width: '100%'
+                }}>
+                    <div style={{
+                        display: 'flex',
+                        flexWrap: 'wrap',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        gap: '20px',
+                        marginBottom: '30px',
+                        width: '100%'
+                    }}>
+                        <div style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '10px',
+                            justifyContent: 'center',
+                            flexWrap: 'wrap',
+                            position: 'relative',
+                            width: '60%',
+                            maxWidth: '400px'
+                        }}>
+                            <select
+                                id="region-select"
+                                value={selectedRegion}
+                                onChange={(e) => setSelectedRegion(e.target.value)}
+                                style={{
+                                    padding: '10px 40px 10px 15px',
+                                    borderRadius: '10px',
+                                    border: '1px solid #ccc',
+                                    fontSize: '1rem',
+                                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                                    width: '100%',
+                                    appearance: 'none'
+                                }}
+                            >
+                                <option value="">Toutes les régions</option>
+                                {regions.map(region => (
+                                    <option key={region} value={region}>{region}</option>
+                                ))}
+                            </select>
+
+                            {selectedRegion && (
+                                <button
+                                    onClick={() => setSelectedRegion('')}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '10px',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        fontSize: '1.2rem',
+                                        cursor: 'pointer',
+                                        color: '#888'
+                                    }}
+                                    aria-label="Réinitialiser la région"
+                                >
+                                    ✖
+                                </button>
+                            )}
+                        </div>
+
+                        <div style={{
+                            position: 'relative',
+                            width: '60%',
+                            maxWidth: '400px',
+                        }}>
+                            <input
+                                type="text"
+                                placeholder="🔍 Rechercher un produit..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                style={{
+                                    width: '100%',
+                                    padding: '10px 40px 10px 15px',
+                                    borderRadius: '10px',
+                                    border: '1px solid #ccc',
+                                    fontSize: '1rem',
+                                    boxShadow: '0 2px 5px rgba(0, 0, 0, 0.1)',
+                                    transition: 'border-color 0.3s',
+                                }}
+                                list="product-suggestions"
+                            />
+                            {searchTerm && (
+                                <button
+                                    onClick={() => setSearchTerm('')}
+                                    style={{
+                                        position: 'absolute',
+                                        right: '10px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%)',
+                                        background: 'transparent',
+                                        border: 'none',
+                                        fontSize: '1.2rem',
+                                        cursor: 'pointer',
+                                        color: '#888'
+                                    }}
+                                    aria-label="Effacer la recherche"
+                                >
+                                    ✖
+                                </button>
+                            )}
+                            <datalist id="product-suggestions">
+                                {products
+                                    .filter(p => p.name.toLowerCase().includes(searchTerm.toLowerCase()))
+                                    .map(p => (
+                                        <option key={p.id} value={p.name} />
+                                    ))}
+                            </datalist>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             <div style={{ display: 'flex', justifyContent: 'center', gap: '15px', marginBottom: '30px' }}>
                 {candyCategory && candyCategory.children && (
-            
                     <div style={{ display: 'flex', justifyContent: 'center', gap: '20px', marginTop: '20px' }}>
                         {candyCategory.children.map(subcat => (
                             <Link key={subcat.id} to={`/category/${subcat.slug}`} style={{ padding: '10px 20px', borderRadius: '20px', backgroundColor: '#ffcccb', border: 'none', textDecoration: 'none', color: 'black' }}>
@@ -64,12 +206,12 @@ function HomePage() {
                     </div>
                 )}
             </div>
+
             <div style={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
                 gap: '25px'
             }}>
-            
                 {selectedProducts.map((product, index) => (
                     <Link key={product.id} to={`/product/${product.id}`} style={{ textDecoration: 'none' }}>
                         <div
@@ -91,9 +233,12 @@ function HomePage() {
                                 e.currentTarget.style.boxShadow = '0 4px 10px rgba(0, 0, 0, 0.1)';
                             }}
                         >
-                            {/* 👉 L'image du produit */}
                             <img
-                                src={`/images/${product.image}`}
+                                src={
+                                    product.image.startsWith('/uploads/')
+                                        ? product.image
+                                        : `/uploads/images/${product.image}`
+                                }
                                 alt={product.name}
                                 style={{
                                     width: '100%',
@@ -107,7 +252,6 @@ function HomePage() {
                                 onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
                             />
 
-                            {/* 👉 Le titre */}
                             <h3 style={{
                                 fontSize: '1.5rem',
                                 marginBottom: '10px',
@@ -119,56 +263,44 @@ function HomePage() {
                             }}>
                                 {product.name}
                             </h3>
-
-                            {/* 👉 La description */}
                             <p style={{ fontSize: '0.95rem', marginBottom: '15px', color: '#666' }}>
                                 {product.description}
                             </p>
-
-                            {/* 👉 Le prix */}
+                            <p style={{ fontSize: '0.95rem', marginBottom: '15px', color: '#666' }}>
+                                {product.region}
+                            </p>
                             <p style={{ fontWeight: 'bold', fontSize: '1.3rem', color: '#ff3366' }}>
                                 {product.price} €
                             </p>
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    addToCart(product);
+                                }}
+                                style={{
+                                    marginTop: '10px',
+                                    padding: '10px 20px',
+                                    borderRadius: '10px',
+                                    border: 'none',
+                                    backgroundColor: '#ff9900',
+                                    color: 'white',
+                                    fontWeight: 'bold',
+                                    cursor: 'pointer'
+                                }}
+                            >
+                                Ajouter au panier 🛒
+                            </button>
+
                         </div>
                     </Link>
                 ))}
-
             </div>
 
-
-            {/* Footer */}
             <footer style={{ marginTop: '50px', padding: '20px', textAlign: 'center', backgroundColor: '#ffe6f0' }}>
                 <p>&copy; 2025 CandyNice - Tous droits réservés.</p>
             </footer>
         </div>
     );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 export default HomePage;
-

@@ -5,7 +5,7 @@ export default function RegisterPage() {
   const { user } = useUser();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [role, setRole] = useState('ROLE_USER'); // Valeur par défaut
+  const [name, setName] = useState('');
   const [response, setResponse] = useState('');
 
 
@@ -21,7 +21,8 @@ export default function RegisterPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password, role }), // On envoie aussi le rôle
+        body: JSON.stringify({ name, email, password, role: 'ROLE_USER' }),
+
       });
 
       if (!res.ok) {
@@ -46,8 +47,22 @@ export default function RegisterPage() {
       boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
       textAlign: 'center',
     }}>
-   
+
       <h2 style={{ marginBottom: '20px', color: '#008080' }}>Inscription ✍️</h2>
+      <input
+        type="text"
+        placeholder="Nom"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        style={{
+          width: '100%',
+          padding: '10px',
+          marginBottom: '15px',
+          borderRadius: '10px',
+          border: '1px solid #ccc',
+          outline: 'none',
+        }}
+      />
 
       <input
         type="email"
@@ -78,27 +93,6 @@ export default function RegisterPage() {
           outline: 'none',
         }}
       />
-
-      {/* Select pour le rôle */}
-      <select
-        value={role}
-        onChange={(e) => setRole(e.target.value)}
-        style={{
-          width: '100%',
-          padding: '10px',
-          marginBottom: '20px',
-          borderRadius: '10px',
-          border: '1px solid #ccc',
-          outline: 'none',
-        }}
-      >
-        <option value="ROLE_USER">Utilisateur</option>
-        {/* On désactive l'option "Administrateur" si l'utilisateur n'a pas le rôle admin */}
-        <option value="ROLE_ADMIN" disabled={!user || !user.role.includes('ROLE_ADMIN')}>
-       Administrateur
-        </option>
-      </select>
-
 
       <button
         onClick={handleRegister}

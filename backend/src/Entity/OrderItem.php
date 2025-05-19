@@ -23,6 +23,7 @@ class OrderItem
     private ?Product $product = null;
 
     #[ORM\ManyToOne(inversedBy: 'orderItems')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?Order $commande = null;
 
     public function getId(): ?int

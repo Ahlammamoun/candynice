@@ -1,23 +1,30 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { Link, useLocation } from 'react-router-dom'; // Import useLocation
+import { useTranslation } from 'react-i18next';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { UserContext } from '../components/UserContext';
+import { CartContext } from './CartContext';
 
 function NavBar() {
-  const { user, setUser, token } = useContext(UserContext);
+  const { t, i18n } = useTranslation();
+
+  const toggleLanguage = () => {
+    const newLang = i18n.language === 'fr' ? 'en' : 'fr';
+    i18n.changeLanguage(newLang);
+  };
+
+  const { user, logout } = useContext(UserContext);
+  const { totalQuantity } = useContext(CartContext);
+  const navigate = useNavigate();
+
   const [isGroceryPage, setIsGroceryPage] = useState(false);
   const [isGroceryCategoryPage, setIsGroceryCategoryPage] = useState(false);
 
-
-  // Use useLocation to detect route changes
   const location = useLocation();
 
   useEffect(() => {
     const path = location.pathname;
-
     setIsGroceryPage(path.startsWith('/grocery'));
-
   }, [location]);
-
 
   useEffect(() => {
     const match = location.pathname.match(/^\/category\/(.+)$/);
@@ -36,26 +43,17 @@ function NavBar() {
     }
   }, [location]);
 
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
+
   const linkStyle = {
     fontSize: '1.1rem',
     color: isGroceryPage ? '#5c4033' : '#333',
     textDecoration: 'none',
     position: 'relative',
     transition: 'color 0.3s',
-  };
-
-  const linkStyleRole = {
-    fontSize: '1.1rem',
-    color: isGroceryPage ? 'black' : 'black', // Keep this black, as it's a valid color
-    textDecoration: 'none',
-    position: 'relative',
-    transition: 'color 0.3s',
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('auth_token');
-    localStorage.removeItem('user');
-    setUser(null);
   };
 
   return (
@@ -66,11 +64,7 @@ function NavBar() {
       padding: '15px 30px',
       backgroundColor: isGroceryPage || isGroceryCategoryPage
         ? 'rgb(210, 180, 140)'
-        : location.pathname.startsWith('/category/')
-          ? 'rgb(255, 204, 203' // neutre rosé si catégorie mais pas grocery
-          : 'rgb(255, 204, 203)',
-
-
+        : 'rgb(255, 204, 203)',
       boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
       position: 'sticky',
       top: 0,
@@ -78,7 +72,6 @@ function NavBar() {
       borderBottomRightRadius: '13px',
       borderBottomLeftRadius: '13px',
     }}>
-      {/* Left: Logo */}
       <div>
         <Link to="/" style={{
           fontSize: '1.8rem',
@@ -90,36 +83,68 @@ function NavBar() {
         </Link>
       </div>
 
+      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '20px' }}>
+        <Link to="/cart" style={{ position: 'relative', fontSize: '1.2rem', textDecoration: 'none' }}>
+          🛒
+          {totalQuantity > 0 && (
+            <span style={{
+              position: 'absolute',
+              top: '-17px',
+              right: '-10px',
+              background: '#ff3366',
+              color: 'white',
+              borderRadius: '50%',
+              padding: '4px 8px',
+              fontSize: '0.75rem',
+              fontWeight: 'bold',
+              lineHeight: '1',
+              minWidth: '20px',
+              textAlign: 'center'
+            }}>
+              {totalQuantity}
+            </span>
+          )}
+        </Link>
 
-      {/* Right: Links */}
-      <div style={{
-        display: 'flex',
-        justifyContent: 'flex-end',
-        gap: '20px',
-      }}>
-
-
-        {/* User Role Display */}
         {user ? (
           <>
-            <span style={linkStyleRole}>
-              {user.role && user.role.includes('ROLE_ADMIN') ? 'Hello👋 Admin' : 'Hello👋 Utilisateur'}
+            <span style={{ ...linkStyle, fontWeight: 'bold' }}>
+              <span style={{ marginLeft: '10px', fontStyle: 'italic' }}>
+            <span>👋{user.name}, tu es </span>
+              </span>
+              {user.roles?.includes('ROLE_ADMIN') ?  t('admin') : t('user')}
             </span>
-            <Link to="/" onClick={handleLogout} style={linkStyle}>Logout</Link>
-            {user.role && user.role.includes('ROLE_ADMIN') && (
+
+            <Link to="/my-orders" style={linkStyle}>{t('my_orders')}</Link>
+            <button
+              onClick={handleLogout}
+              style={{
+                ...linkStyle,
+                background: 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+                fontSize: '1.1rem',
+                fontWeight: 'bold',
+                padding: 0
+              }}
+            >
+              {t('logout')}
+            </button>
+            {user.roles?.includes('ROLE_ADMIN') && (
               <Link to="/admin" style={linkStyle}>Backoffice</Link>
             )}
           </>
         ) : (
-          <>
-            <Link to="/login" style={linkStyle}>Login</Link>
-          </>
+          <Link to="/login" style={linkStyle}>{t('login')}</Link>
         )}
-        <Link to="/" style={linkStyle}>Accueil</Link>
-        <Link to="/register" style={linkStyle}>Register</Link>
-        <Link to="/" style={linkStyle}>Candies</Link>
-        <Link to="/grocery" style={linkStyle}>Groceries</Link>
 
+        <Link to="/" style={linkStyle}>{t('home')}</Link>
+        <Link to="/register" style={linkStyle}>{t('register')}</Link>
+        <Link to="/" style={linkStyle}>{t('candies')}</Link>
+        <Link to="/grocery" style={linkStyle}>{t('groceries')}</Link>
+        <button onClick={toggleLanguage}>
+          🌍 {i18n.language === 'fr' ? 'EN' : 'FR'}
+        </button>
       </div>
     </nav>
   );

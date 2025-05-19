@@ -23,6 +23,7 @@ class Order
     private ?float $totalPrice = null;
 
     #[ORM\ManyToOne(inversedBy: 'orders')]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
     /**
