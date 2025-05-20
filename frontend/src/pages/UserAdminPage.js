@@ -1,17 +1,35 @@
 import React, { useEffect, useState } from 'react';
-import { useUser } from '../components/UserContext';
+
 
 export default function UserAdminPage() {
-  const { fetchWithAuth } = useUser();
+
   const [users, setUsers] = useState([]);
   const [editingId, setEditingId] = useState(null);
   const [form, setForm] = useState({ email: '', password: '', roles: ['ROLE_USER'], name: '' });
 
   const loadUsers = async () => {
-    const res = await fetchWithAuth('/api/users');
+    const token = localStorage.getItem('auth_token');
+
+    const res = await fetch('/api/users', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    });
+
     const data = await res.json();
-    setUsers(data);
+
+    if (res.ok && Array.isArray(data)) {
+      setUsers(data);
+    } else if (res.ok && Array.isArray(data.users)) {
+      setUsers(data.users);
+    } else {
+      console.error('Erreur API /api/users :', data);
+      alert(data.message || 'Erreur inconnue');
+      setUsers([]); // éviter que `users.map` plante
+    }
   };
+
 
   useEffect(() => {
     loadUsers();
@@ -21,25 +39,60 @@ export default function UserAdminPage() {
     const method = editingId ? 'PUT' : 'POST';
     const url = editingId ? `/api/users/${editingId}` : '/api/users';
 
-    const payload = editingId
-      ? { email: form.email, roles: form.roles, name: form.name }
-      : { ...form };
+    // 🔒 Vérifications côté client
+    if (!form.name.trim()) {
+      alert("Le nom de l'utilisateur est requis.");
+      return;
+    }
 
-    const res = await fetchWithAuth(url, {
+    if (!form.email.trim()) {
+      alert("L'email est requis.");
+      return;
+    }
+
+    if (!editingId && !form.password.trim()) {
+      alert('Le mot de passe est requis pour créer un utilisateur.');
+      return;
+    }
+
+    const payload = editingId
+      ? {
+        email: form.email.trim(),
+        roles: form.roles,
+        name: form.name.trim(),
+      }
+      : {
+        email: form.email.trim(),
+        password: form.password.trim(),
+        roles: form.roles,
+        name: form.name.trim(),
+      };
+
+    const token = localStorage.getItem('auth_token');
+
+    const res = await fetch(url, {
       method,
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
       body: JSON.stringify(payload),
     });
 
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+
     if (res.ok) {
       await loadUsers();
       setEditingId(null);
-      setForm({ email: '', password: '', roles: ['ROLE_USER'] });
+      setForm({ email: '', password: '', roles: ['ROLE_USER'], name: '' });
       alert(editingId ? 'Utilisateur modifié' : 'Utilisateur créé');
     } else {
-      alert(data.error || 'Erreur');
+      alert(data.error || data.message || '❌ Erreur lors de la requête');
     }
   };
+
+
+
 
   const handleEdit = (user) => {
     setEditingId(user.id);
@@ -53,7 +106,7 @@ export default function UserAdminPage() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Supprimer cet utilisateur ?')) return;
-    const res = await fetchWithAuth(`/api/users/${id}`, {
+    const res = await fetch(`/api/users/${id}`, {
       method: 'DELETE',
     });
     const data = await res.json().catch(() => null);

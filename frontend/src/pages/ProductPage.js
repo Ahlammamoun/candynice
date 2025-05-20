@@ -1,4 +1,4 @@
-import { useUser } from '../components/UserContext';
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
@@ -7,7 +7,7 @@ import { UserContext } from '../components/UserContext';
 
 
 function ProductPage() {
-  const { fetchWithAuth } = useUser();
+
   const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,7 @@ function ProductPage() {
 
 
   useEffect(() => {
-    fetchWithAuth(`http://localhost:8000/api/products/${id}`)
+    fetch(`http://localhost:8000/api/products/${id}`)
       .then(response => response.json())
       .then(data => {
         setProduct(data);

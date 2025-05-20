@@ -7,17 +7,19 @@ export const UserProvider = ({ children }) => {
   const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-
-  const logout = () => {
+  const logout = (shouldRedirect = true) => {
     console.log('👋 Déconnexion !');
     localStorage.removeItem('auth_token');
     localStorage.removeItem('user');
     setUser(null);
     setToken(null);
-    navigate('/login');
+    if (shouldRedirect) navigate('/login');
   };
 
+
   const fetchWithAuth = async (url, options = {}) => {
+    const token = localStorage.getItem('token'); // ou récupéré depuis un context
+
     const authOptions = {
       ...options,
       headers: {
@@ -27,26 +29,31 @@ export const UserProvider = ({ children }) => {
       },
     };
 
-    const response = await fetch(url, authOptions);
+    try {
+      const response = await fetch(url, authOptions);
 
-    if (response.status === 401) {
-      // ✅ Clone la réponse pour lire son corps sans consommer l'original
-      const clone = response.clone();
+      if (response.status === 401) {
+        const clone = response.clone();
 
-      try {
-        const result = await clone.json();
-        if (result?.message === 'Expired JWT Token') {
-          alert('Votre session a expiré. Veuillez vous reconnecter.');
-          logout();
-          return null; // ⚠️ important : retourne null
+        try {
+          const result = await clone.json();
+          if (result?.message === 'Expired JWT Token') {
+            alert('Votre session a expiré. Veuillez vous reconnecter.');
+            if (typeof logout === 'function') logout();
+            return null;
+          }
+        } catch (e) {
+          // JSON mal formé ou vide
         }
-      } catch (e) {
-        // JSON vide ou mal formé → on ignore
       }
-    }
 
-    return response;
+      return response;
+    } catch (error) {
+      console.error('Erreur réseau :', error);
+      throw error;
+    }
   };
+
 
 
   useEffect(() => {
@@ -89,7 +96,7 @@ export const UserProvider = ({ children }) => {
           logout();
         });
     } else {
-      logout();
+      logout(false);
     }
   }, []);
 

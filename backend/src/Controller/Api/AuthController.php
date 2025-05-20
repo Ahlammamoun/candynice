@@ -141,12 +141,14 @@ class AuthController extends AbstractController
         $this->denyAccessUnlessGranted('ROLE_ADMIN');
 
         $data = json_decode($request->getContent(), true);
+
         $email = $data['email'] ?? null;
         $password = $data['password'] ?? null;
         $roles = $data['roles'] ?? ['ROLE_USER'];
+        $name = $data['name'] ?? null; // 👈 Ajouté
 
-        if (!$email || !$password) {
-            return $this->json(['error' => 'Email et mot de passe requis'], 400);
+        if (!$email || !$password || !$name) {
+            return $this->json(['error' => 'Email, mot de passe et nom sont requis'], 400);
         }
 
         if (!is_array($roles)) {
@@ -161,12 +163,14 @@ class AuthController extends AbstractController
         $user->setEmail($email);
         $user->setPassword($passwordHasher->hashPassword($user, $password));
         $user->setRoles($roles);
+        $user->setName($name); // 👈 Ajouté ici aussi
 
         $entityManager->persist($user);
         $entityManager->flush();
 
         return $this->json(['message' => 'Utilisateur créé'], 201);
     }
+
 
 
 

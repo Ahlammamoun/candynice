@@ -433,7 +433,10 @@ const ProductAdminPage = () => {
                             />
                             <div style={{ flex: 1 }}>
                                 <h4 style={{ margin: 0 }}>{product.name}</h4>
-                                <p style={{ margin: '4px 0' }}>{product.price}€</p>
+                                <p style={{ margin: '4px 0' }}>prix: {product.price}€</p>
+                                <p style={{ margin: '4px 0' }}>Region: {product.region}</p>
+                                <p style={{ margin: '4px 0' }}>category: {product.parent_id} / {product.category}</p>
+                                  <p style={{ margin: '4px 0' }}>stock: {product.stock}</p>
                                 <div className="actions">
                                     <button className="btn-edit" onClick={() => handleEditProduct(product.id)}>
                                         Modifier

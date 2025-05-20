@@ -32,6 +32,10 @@ class Order
     #[ORM\OneToMany(targetEntity: OrderItem::class, mappedBy: 'commande')]
     private Collection $orderItems;
 
+
+    #[ORM\Column(type: 'string', length: 50)]
+    private string $status = 'en_attente'; // valeur par défaut (peut être "en_attente", "payée", "expédiée", etc.)
+
     public function __construct()
     {
         $this->orderItems = new ArrayCollection();
@@ -107,4 +111,18 @@ class Order
 
         return $this;
     }
+
+    public function getStatus(): string
+    {
+        return $this->status;
+    }
+
+    public function setStatus(string $status): self
+    {
+        $this->status = $status;
+        return $this;
+    }
+
+
+
 }

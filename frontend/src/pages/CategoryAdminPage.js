@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useUser } from '../components/UserContext';
 
 const CategoryAdminPage = () => {
-  const { fetchWithAuth } = useUser();
+  const { user, token } = useUser();
   const [categories, setCategories] = useState([]);
   const [newCategory, setNewCategory] = useState({
     name: '',
@@ -13,7 +13,7 @@ const CategoryAdminPage = () => {
 
   const loadCategories = async () => {
     try {
-      const res = await fetchWithAuth('/api/categories');
+      const res = await fetch('/api/categories');
       if (res.ok) {
         const data = await res.json();
         setCategories(data);
@@ -35,7 +35,7 @@ const CategoryAdminPage = () => {
       return;
     }
 
-    const res = await fetchWithAuth('/api/categories', {
+    const res = await fetch('/api/categories', {
       method: 'POST',
       body: JSON.stringify(newCategory),
     });
@@ -61,7 +61,7 @@ const CategoryAdminPage = () => {
   };
 
   const handleUpdateCategory = async () => {
-    const res = await fetchWithAuth(`/api/categories/${editingCategoryId}`, {
+    const res = await fetch(`/api/categories/${editingCategoryId}`, {
       method: 'PUT',
       body: JSON.stringify(newCategory),
     });
@@ -81,7 +81,7 @@ const CategoryAdminPage = () => {
   const handleDeleteCategory = async (id) => {
     if (!window.confirm('Supprimer cette catégorie ?')) return;
 
-    const res = await fetchWithAuth(`/api/categories/${id}`, {
+    const res = await fetch(`/api/categories/${id}`, {
       method: 'DELETE',
     });
 

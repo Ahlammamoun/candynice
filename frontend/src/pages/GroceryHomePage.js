@@ -1,4 +1,4 @@
-import { useUser } from '../components/UserContext';  
+
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useContext } from 'react';
@@ -7,7 +7,7 @@ import { UserContext } from '../components/UserContext';
 
 
 function GroceryHomePage() {
-  const { fetchWithAuth } = useUser();
+
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,8 +21,8 @@ function GroceryHomePage() {
 
   useEffect(() => {
     Promise.all([
-      fetchWithAuth('http://localhost:8000/api/categories').then(res => res.json()),
-      fetchWithAuth('http://localhost:8000/api/products').then(res => res.json())
+      fetch('http://localhost:8000/api/categories').then(res => res.json()),
+      fetch('http://localhost:8000/api/products').then(res => res.json())
     ]).then(([categoriesData, productsData]) => {
       setCategories(categoriesData);
       setProducts(productsData);

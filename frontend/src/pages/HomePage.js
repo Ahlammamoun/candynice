@@ -1,11 +1,11 @@
-import { useUser } from '../components/UserContext';        
+ 
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { CartContext } from '../components/CartContext';
 import { useContext } from 'react';
 
 function HomePage() {
-    const { fetchWithAuth } = useUser();
+
     const [categories, setCategories] = useState([]);
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -17,13 +17,13 @@ function HomePage() {
 
 
     useEffect(() => {
-        fetchWithAuth('http://localhost:8000/api/categories')
+        fetch('http://localhost:8000/api/categories')
             .then(response => response.json())
             .then(data => {
                 setCategories(data);
             });
 
-        fetchWithAuth('http://localhost:8000/api/products')
+        fetch('http://localhost:8000/api/products')
             .then(response => response.json())
             .then(data => {
                 setProducts(data);

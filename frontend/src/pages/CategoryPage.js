@@ -1,4 +1,4 @@
-import { useUser } from '../components/UserContext';   
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useContext } from 'react';
@@ -7,7 +7,7 @@ import { UserContext } from '../components/UserContext';
 
 
 function CategoryPage() {
-  const { fetchWithAuth } = useUser();
+
   const { slug } = useParams();
   const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -19,11 +19,11 @@ function CategoryPage() {
 
   useEffect(() => {
     async function fetchData() {
-      const productsResponse = await fetchWithAuth(`http://localhost:8000/api/products?category=${slug}`);
+      const productsResponse = await fetch(`http://localhost:8000/api/products?category=${slug}`);
       const productsData = await productsResponse.json();
       setProducts(productsData);
 
-      const categoriesResponse = await fetchWithAuth('http://localhost:8000/api/categories');
+      const categoriesResponse = await fetch('http://localhost:8000/api/categories');
       const categoriesData = await categoriesResponse.json();
       setCategories(categoriesData);
 

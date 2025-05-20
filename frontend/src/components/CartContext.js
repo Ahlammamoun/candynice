@@ -30,6 +30,7 @@ export const CartProvider = ({ children }) => {
     });
   };
 
+  
   // ✅ 4. Retirer un produit
   const removeFromCart = (id) => {
     setCart((prev) => prev.filter((item) => item.id !== id));

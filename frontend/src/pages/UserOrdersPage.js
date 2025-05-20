@@ -4,13 +4,13 @@ import { useUser } from '../components/UserContext';
 
 const UserOrdersPage = () => {
   const { t } = useTranslation();
-  const { fetchWithAuth, token } = useUser();
+  const { token } = useUser();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
   const downloadInvoice = async (orderId) => {
     try {
-      const response = await fetchWithAuth(`http://localhost:8000/api/orders/${orderId}/invoice`, {
+      const response = await fetch(`http://localhost:8000/api/orders/${orderId}/invoice`, {
         headers: {
           Authorization: `Bearer ${token}`,
         }
@@ -31,7 +31,12 @@ const UserOrdersPage = () => {
   };
 
   useEffect(() => {
-    fetchWithAuth('http://localhost:8000/api/orders')
+    fetch('http://localhost:8000/api/orders', {
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+      },
+    })
       .then(res => res.json())
       .then(data => {
         setOrders(data);
@@ -41,7 +46,7 @@ const UserOrdersPage = () => {
         console.error('Erreur lors de la récupération des commandes :', err);
         setLoading(false);
       });
-  }, [fetchWithAuth]);
+  }, [fetch]);
 
   if (loading) return <p style={{ padding: '2rem' }}>{t('loading')}</p>;
   if (!orders.length) return <p style={{ padding: '2rem' }}>{t('no_orders')}</p>;
@@ -67,12 +72,15 @@ const UserOrdersPage = () => {
           <p style={{ fontWeight: 'bold', marginBottom: '1rem' }}>
             💰 {t('total')}: {order.total.toFixed(2)} €
           </p>
-
+          <p style={{ fontWeight: 'bold', marginBottom: '1rem' }}>
+            📦 {t('status')}: {order.status || 'inconnu'}
+          </p>
           <ul style={{ paddingLeft: '1.2rem', marginBottom: '1rem' }}>
             {order.items.map((item, index) => (
               <li key={index} style={{ marginBottom: '0.4rem' }}>
                 🧃 {item.product} — {item.quantity} × {item.unit_price.toFixed(2)} €
               </li>
+
             ))}
           </ul>
 

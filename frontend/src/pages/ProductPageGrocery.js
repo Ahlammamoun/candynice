@@ -1,5 +1,5 @@
 
-import { useUser } from '../components/UserContext';
+
 import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useContext } from 'react';
@@ -7,7 +7,7 @@ import { CartContext } from '../components/CartContext';
 import { UserContext } from '../components/UserContext';
 
 function ProductPageGrocery() {
-  const { fetchWithAuth } = useUser();
+
   const { id } = useParams(); // récupérer l'id du produit depuis l'URL
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,7 +16,7 @@ function ProductPageGrocery() {
 
 
   useEffect(() => {
-    fetchWithAuth(`http://localhost:8000/api/products/${id}`)
+    fetch(`http://localhost:8000/api/products/${id}`)
       .then(response => response.json())
       .then(data => {
         setProduct(data);

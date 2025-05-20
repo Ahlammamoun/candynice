@@ -36,6 +36,7 @@ class OrderController extends AbstractController
         $order = new Order();
         $order->setCreatedAt(new \DateTimeImmutable());
         $order->setUser($user);
+        $order->setStatus('en_attente');
 
         $total = 0;
 
@@ -49,7 +50,7 @@ class OrderController extends AbstractController
                 continue;
             }
 
-            $quantity = (int)$item['quantity'];
+            $quantity = (int) $item['quantity'];
             $price = $product->getPrice();
 
             $orderItem = new OrderItem();
@@ -96,6 +97,7 @@ class OrderController extends AbstractController
                     'product' => $item->getProduct()->getName(),
                     'quantity' => $item->getQuantity(),
                     'unit_price' => $item->getUnitPrice(),
+
                 ];
             }
 
@@ -103,6 +105,7 @@ class OrderController extends AbstractController
                 'id' => $order->getId(),
                 'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i'),
                 'total' => $order->getTotalPrice(),
+                'status' => $order->getStatus(),
                 'items' => $items,
             ];
         }
@@ -127,6 +130,7 @@ class OrderController extends AbstractController
         // Génération HTML de la facture
         $html = "<h2>Facture - Commande #{$order->getId()}</h2>";
         $html .= "<p>Date : {$order->getCreatedAt()->format('Y-m-d H:i')}</p>";
+        $html .= "<p>Statut : {$order->getStatus()}</p>";
         $html .= "<p>Total : {$order->getTotalPrice()} €</p>";
         $html .= "<table border='1' cellspacing='0' cellpadding='6' style='width:100%;'>
                     <thead><tr><th>Produit</th><th>Quantité</th><th>Prix unitaire</th></tr></thead><tbody>";
@@ -155,4 +159,183 @@ class OrderController extends AbstractController
             'Content-Disposition' => 'inline; filename="facture-commande-' . $order->getId() . '.pdf"',
         ]);
     }
+
+
+    #[Route('/api/orders/all', name: 'get_all_orders', methods: ['GET'])]
+    public function getAllOrders(EntityManagerInterface $em): JsonResponse
+    {
+        $this->denyAccessUnlessGranted('ROLE_ADMIN');
+
+        $orders = $em->getRepository(Order::class)->findBy([], ['createdAt' => 'DESC']);
+        $data = [];
+
+        foreach ($orders as $order) {
+            $items = [];
+
+            foreach ($order->getOrderItems() as $item) {
+                $items[] = [
+                    'product' => $item->getProduct()->getName(),
+                    'quantity' => $item->getQuantity(),
+                    'unit_price' => $item->getUnitPrice(),
+                ];
+            }
+
+            $data[] = [
+                'id' => $order->getId(),
+                'createdAt' => $order->getCreatedAt()->format('Y-m-d H:i'),
+                'total' => $order->getTotalPrice(),
+                'status' => $order->getStatus(),
+                'user_email' => $order->getUser()?->getEmail(), // safe operator
+                'items' => $items,
+            ];
+        }
+
+        return $this->json($data);
+    }
+
+
+    #[Route('/api/orders/{id}/status', name: 'update_order_status', methods: ['PUT'])]
+    public function updateOrderStatus(
+        int $id,
+        Request $request,
+        EntityManagerInterface $em
+    ): JsonResponse {
+        $user = $this->getUser();
+
+        if (!$user || !in_array('ROLE_ADMIN', $user->getRoles())) {
+            return new JsonResponse(['error' => 'Accès refusé'], 403);
+        }
+
+        $order = $em->getRepository(Order::class)->find($id);
+        if (!$order) {
+            return new JsonResponse(['error' => 'Commande introuvable'], 404);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $newStatus = $data['status'] ?? null;
+
+        $allowedStatuses = ['en_attente', 'payee', 'expediee', 'livree', 'annulee'];
+
+        if (!in_array($newStatus, $allowedStatuses, true)) {
+            return new JsonResponse(['error' => 'Statut invalide'], 400);
+        }
+
+        $order->setStatus($newStatus);
+        $em->flush();
+
+        return new JsonResponse(['message' => 'Statut mis à jour']);
+    }
+
+    #[Route('/api/admin/stats', name: 'admin_stats', methods: ['GET'])]
+    public function getAdminStats(EntityManagerInterface $em): JsonResponse
+    {
+        $user = $this->getUser();
+        if (!$user || !in_array('ROLE_ADMIN', $user->getRoles())) {
+            return new JsonResponse(['error' => 'Accès refusé'], 403);
+        }
+
+        $orders = $em->getRepository(Order::class)->findAll();
+
+        $totalOrders = count($orders);
+        $totalRevenue = 0;
+        $monthlyRevenue = [];
+        $yearlyRevenue = [];
+        $productSales = [];
+        $statusCount = [];
+
+        foreach ($orders as $order) {
+            $totalRevenue += $order->getTotalPrice();
+
+            // 📅 CA par mois
+            $month = $order->getCreatedAt()->format('Y-m');
+            if (!isset($monthlyRevenue[$month])) {
+                $monthlyRevenue[$month] = 0;
+            }
+            $monthlyRevenue[$month] += $order->getTotalPrice();
+
+            // 📆 CA par année
+            $year = $order->getCreatedAt()->format('Y');
+            if (!isset($yearlyRevenue[$year])) {
+                $yearlyRevenue[$year] = 0;
+            }
+            $yearlyRevenue[$year] += $order->getTotalPrice();
+
+            // 🧾 Produits vendus
+            foreach ($order->getOrderItems() as $item) {
+                $name = $item->getProduct()->getName();
+                if (!isset($productSales[$name])) {
+                    $productSales[$name] = 0;
+                }
+                $productSales[$name] += $item->getQuantity();
+            }
+
+            // 📦 Comptage des statuts
+            $status = $order->getStatus() ?? 'inconnu';
+            if (!isset($statusCount[$status])) {
+                $statusCount[$status] = 0;
+            }
+            $statusCount[$status]++;
+        }
+
+        arsort($productSales);      // produits les plus vendus
+        ksort($monthlyRevenue);     // ordre chronologique des mois
+           ksort($yearlyRevenue);
+        ksort($statusCount);        // tri des statuts pour affichage stable
+
+        return $this->json([
+            'totalOrders' => $totalOrders,
+            'totalRevenue' => $totalRevenue,
+            'averageOrder' => $totalOrders ? round($totalRevenue / $totalOrders, 2) : 0,
+            'productSales' => $productSales,
+            'monthlyRevenue' => $monthlyRevenue,
+            'yearlyRevenue' => $yearlyRevenue, 
+            'statusCount' => $statusCount ?? [],
+        ]);
+    }
+
+
+
+    #[Route('/api/admin/orders/export', name: 'admin_orders_export', methods: ['GET'])]
+    public function exportOrders(EntityManagerInterface $em): Response
+    {
+        $user = $this->getUser();
+        if (!$user || !in_array('ROLE_ADMIN', $user->getRoles())) {
+            return new JsonResponse(['error' => 'Accès refusé'], 403);
+        }
+
+        $orders = $em->getRepository(Order::class)->findAll();
+
+        $csv = fopen('php://temp', 'r+');
+        fputcsv($csv, ['ID', 'Client', 'Date', 'Total (€)', 'Statut', 'Produits']);
+
+        foreach ($orders as $order) {
+            $products = [];
+
+            foreach ($order->getOrderItems() as $item) {
+                $products[] = "{$item->getProduct()->getName()} × {$item->getQuantity()}";
+            }
+
+            fputcsv($csv, [
+                $order->getId(),
+                $order->getUser()->getEmail(),
+                $order->getCreatedAt()->format('Y-m-d H:i'),
+                number_format($order->getTotalPrice(), 2),
+                $order->getStatus(),
+                implode(' | ', $products),
+            ]);
+        }
+
+        rewind($csv);
+        $csvContent = stream_get_contents($csv);
+        fclose($csv);
+
+        return new Response($csvContent, 200, [
+            'Content-Type' => 'text/csv',
+            'Content-Disposition' => 'attachment; filename="commandes.csv"',
+        ]);
+    }
+
+
+
+
 }

@@ -10,7 +10,7 @@ use Symfony\Component\Security\Core\Security;
 
 class MeController extends AbstractController
 {
-   #[Route('/api/me', name: 'api_me', methods: ['GET'])]
+#[Route('/api/me', name: 'api_me', methods: ['GET'])]
 public function me(): JsonResponse
 {
     $user = $this->getUser();

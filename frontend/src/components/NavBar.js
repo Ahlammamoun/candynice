@@ -14,6 +14,7 @@ function NavBar() {
 
   const { user, logout } = useContext(UserContext);
   const { totalQuantity } = useContext(CartContext);
+  const { clearCart } = useContext(CartContext); // 👈
   const navigate = useNavigate();
 
   const [isGroceryPage, setIsGroceryPage] = useState(false);
@@ -21,6 +22,7 @@ function NavBar() {
 
   const location = useLocation();
 
+  
   useEffect(() => {
     const path = location.pathname;
     setIsGroceryPage(path.startsWith('/grocery'));
@@ -45,6 +47,7 @@ function NavBar() {
 
   const handleLogout = () => {
     logout();
+    clearCart(); 
     navigate('/login');
   };
 

@@ -1,11 +1,11 @@
-import { useUser } from '../components/UserContext';   
+
 import React, { useContext } from 'react';
 import { CartContext } from '../components/CartContext';
 import { UserContext } from '../components/UserContext';
 import { Navigate } from 'react-router-dom';
 
 const CartPage = () => {
-     const { fetchWithAuth } = useUser();
+
     const { user } = useContext(UserContext);
     const { cart, removeFromCart, clearCart } = useContext(CartContext);
 
@@ -25,7 +25,7 @@ const CartPage = () => {
 
     const handleCheckout = async () => {
         try {
-            const response = await fetchWithAuth('http://localhost:8000/api/create-checkout-session', {
+            const response = await fetch('http://localhost:8000/api/create-checkout-session', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
