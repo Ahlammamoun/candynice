@@ -43,7 +43,7 @@ const CartPage = () => {
 
 
             const data = await response.json();
-            const stripe = window.Stripe('pk_live_51FpejlK9Q2TyiugcJQHFelHbKeO4VhmNlPF7q2PlDV0EgxysFtUYKUbo1ZniO7s1jXunu25b3b9jkMBweVAqQes200hA1NzOqq');
+        
             localStorage.setItem('cart_backup', JSON.stringify(cart));
             stripe.redirectToCheckout({ sessionId: data.id });
         } catch (error) {
